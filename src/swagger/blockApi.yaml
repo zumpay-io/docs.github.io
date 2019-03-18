@@ -1,0 +1,1203 @@
+openapi: 3.0.0
+info:
+  description: >-
+    This document outlines the public API methods available using the ZumPay
+    Blockchain Cache API which is a replacement for normal ZumCoin daemon RPC
+    calls.
+  version: "1.2.1-oas3"
+  title: ZumPay Blockchain Cache API
+  contact:
+    email: zumpay@zumcoin.org
+  license:
+    name: GNU Affero General Public License version 3
+    url: 'https://opensource.org/licenses/AGPL-3.0'
+tags:
+  - name: Chain/Cache
+  - name: Blocks
+  - name: Transactions
+  - name: Wallet Operations
+  - name: Legacy Operations
+paths:
+  /amounts:
+    get:
+      tags:
+        - Chain/Cache
+      summary: Returns the current mixable amounts on the network
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    amount:
+                      type: integer
+                    timestamp:
+                      type: integer
+                    height:
+                      type: integer
+                    txnHash:
+                      type: string
+                    hash:
+                      type: string
+        '404':
+          description: Mixable amounts not found
+  /chain/stats:
+    get:
+      tags:
+        - Chain/Cache
+      summary: Returns block statistics for the last 2,880 (1 day) blocks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                maxItems: 2880
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: integer
+                      example: 1551194293
+                    difficulty:
+                      type: integer
+                      example: 5652826471
+                    nonce:
+                      type: integer
+                      example: 2684423497
+                    size:
+                      type: integer
+                      example: 428
+                    txnCount:
+                      type: integer
+                      example: 1
+        '500':
+          description: Internal Server Error
+  /height:
+    get:
+      tags:
+        - Chain/Cache
+      summary: Returns the blockchain cache current height
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  height:
+                    type: integer
+                    example: 1129669
+                  network_height:
+                    type: integer
+                    example: 1129669
+        '500':
+          description: Internal Server Error
+  /info:
+    get:
+      tags:
+        - Chain/Cache
+      summary: >-
+        Returns current network information regarding the underlying network
+        node(s)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alt_blocks_count:
+                    type: integer
+                    example: 2
+                  difficulty:
+                    type: integer
+                    example: 3115454145
+                  grey_peerlist_size:
+                    type: integer
+                    example: 1089
+                  hashrate:
+                    type: integer
+                    example: 103848471
+                  height:
+                    type: integer
+                    example: 1129673
+                  incoming_connections_count:
+                    type: integer
+                    example: 31
+                  last_known_block_index:
+                    type: integer
+                    example: 1129671
+                  major_version:
+                    type: integer
+                    example: 4
+                  minor_version:
+                    type: integer
+                    example: 0
+                  network_height:
+                    type: integer
+                    example: 1129673
+                  outgoing_connections_count:
+                    type: integer
+                    example: 8
+                  start_time:
+                    type: integer
+                    example: 1546895003
+                  status:
+                    type: string
+                    example: OK
+                  supported_height:
+                    type: integer
+                    example: 1000000
+                  synced:
+                    type: boolean
+                    example: true
+                  testnet:
+                    type: boolean
+                    example: false
+                  tx_count:
+                    type: integer
+                    example: 1598886
+                  tx_pool_size:
+                    type: integer
+                    example: 2
+                  upgrade_heights:
+                    type: array
+                    items:
+                      type: integer
+                      example:
+                        - 187000
+                        - 350000
+                        - 440000
+                        - 620000
+                        - 700000
+                        - 800000
+                        - 1000000
+                        - 1200000
+                        - 1400000
+                        - 1600000
+                        - 1800000
+                        - 2000000
+                  version:
+                    type: string
+                    example: 0.12.0
+                  white_peerlist_size:
+                    type: integer
+                    example: 38
+        '500':
+          description: Internal Server Error
+  /supply:
+    get:
+      tags:
+        - Chain/Cache
+      summary: Returns the current circulating currency supply in ZUM
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 33090018087.69
+        '500':
+          description: Internal Server Error
+  /block:
+    post:
+      tags:
+        - Blocks
+      summary: Submits a new block to the network
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Wrong block blob
+        '500':
+          description: Internal Server Error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - block
+              properties:
+                block:
+                  type: string
+                  example: >-
+                    0400850d6b0dcd9aee8adc27ddf2c0102cc7985d006bd7ca057d09313c6afe9f34580000829de8e1050000000000000000000000000000000000000000000000000000000000000000000000000100000000230321000000000000000000000000000000000000000000000000000000000000000000018ee14501ffe6e045050202e9567859b844305a8c33d36d7a31ac29a78b233dc00de39878c77e4b639d23b4f403024f44e842ba4d0aaade34ac03940da2dc6f8ae146f6948a8b240db947a661f3c280f104026d11bea76123efc53ab8e233252486c6bfb1cd499823d383a22711405cc6346580ea30027b64b9e6c9922387a1343d22c8040ae4a1b787ed7f3bfbeac92ba1b8356175fe80897a023cfa03f1fc506eb797116baa22f4d63425f2137fb9c1e3116f1ab5b6e0a6d54aeb01011f8b6c0e5635716d6446867cdc4dba0006989ec5440ef4804a44727bf713a2c702c8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002baa8def39990827a71965b84d61be5d7db6a6270428d8e48d8eb8015d43f65f0e189e52e3fe9f0da5b04fed64effc070e1b97e32cb5445a4434a70eda8c6572f
+  /block/count:
+    get:
+      tags:
+        - Blocks
+      summary: Returns the total number of blocks in the cache
+      responses:
+        '200':
+          description: Block Count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  blockCount:
+                    type: integer
+                    example: 1129692
+        '500':
+          description: Internal Server Error
+  '/block/{term}':
+    get:
+      tags:
+        - Blocks
+      summary: >-
+        Returns the block information for the block with the specified hash or
+        height
+      parameters:
+        - name: term
+          description: Either the height of the block or the hash
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block_Detail'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  '/block/header/{term}':
+    get:
+      tags:
+        - Blocks
+      summary: Returns the block header for the block with the specified hash or height
+      parameters:
+        - name: term
+          description: Either the height of the block or the hash
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block_Header'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /block/header/top:
+    get:
+      tags:
+        - Blocks
+      summary: Returns the top block header
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block_Header'
+        '500':
+          description: Internal Server Error
+  '/block/headers/{height}':
+    get:
+      tags:
+        - Blocks
+      summary: >-
+        Returns details regarding the 30 blocks preceeding the specified block
+        including the specified block
+      parameters:
+        - name: height
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                maxItems: 30
+                items:
+                  $ref: '#/components/schemas/Block_Summary'
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+  '/block/headers/{height}/bulk':
+    get:
+      tags:
+        - Blocks
+      summary: >-
+        Returns details regarding the 1,000 blocks preceeding the specified
+        block including the specified block
+      parameters:
+        - name: height
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                maxItems: 1000
+                items:
+                  $ref: '#/components/schemas/Block_Summary'
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+  /block/template:
+    post:
+      tags:
+        - Blocks
+      summary: Returns the current block template for mining operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  blocktemplate:
+                    type: string
+                    example: >-
+                      0400728d06eb4625c9e01e38fa87f811edd77c67d80ca38489d7c27f31d3847c9a0e0000bfa6e8e105000000000000000000000000000000000000000000000000000000000000000000000000010000000023032100000000000000000000000000000000000000000000000000000000000000000001b9e14501ff91e145060802d6b857e662cc8338a2a7e06a79e4a8769f6d856fbf48165bd7c29ca2a843bb3b500260e76024a6c203bdde045eced089c3e0fcc902de0cdb485fd843224800db3687f4030276e8d5d2e85e1ece9bbe8f88ef58ea9f94debab42f0b55955abd2987c1bf3bbb80f1040292389822fc43ac0229c99f2fe9a0fbe13c77b57fd668dd8d9aa3db9abcf4d5f380ea30020b60d2efc8e00380b3533ea5b6e42a1c7253524b8892e40355fb60d4be6d45db80897a02c424ab20e84649acf3aea1e0415c67c8b93fbee04b82adf544a1a566b536818f29014e3481ff088c19c46394e3580d3add88974adcbe9aa6d5a39e1b9ff1e1b541ca020600000000000002652b22710fafc9ebd4abb37eaffb7d43b019f563166d6912f33eb584b51c4284eca996fe0020b65bc983cdfd06c997231f14a03a8c4028a03608a234f4f573d5
+                  difficulty:
+                    type: integer
+                    example: 4327799156
+                  height:
+                    type: integer
+                    example: 1142929
+                  reservedOffset:
+                    type: integer
+                    example: 376
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Failed to parse wallet address
+        '500':
+          description: Internal Server Error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - address
+              properties:
+                reserveSize:
+                  type: integer
+                  example: 6
+                  minimum: 0
+                  maximum: 255
+                address:
+                  type: string
+                  example: >-
+                    Zum1yiVt3UDGr5XwUpvdeNbG5c7ufBLPR85hY43gGXMqcuM2y4ZNBQdEBAj76BqdtjHuCnbDRZWdoQkAbs5MMCbubsyHS5T787E
+  /transaction:
+    post:
+      tags:
+        - Transactions
+      summary: >-
+        Attempts to broadcast a raw transaction to the network
+      responses:
+        '200':
+          description: >-
+            OK - Check the status property for the result of the daemon
+            interaction
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: OK
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tx_as_hex:
+                  type: string
+                  example: >-
+                    010001026404d48008fff717d2872294b71e51b8304ed711c0fe240a2614610cc0380a5d0b8b13e2652e6c062fbb056b7f1f015a027b2288942d52247932af36dc1d722da61f296089015b83d591f5a71afafa948021015af0c037fcfe8c50f1e11876c98338fe664c85bc11cd696bc04c988b5669deda96a4299dd9cb471795d079da82e25827badcd79400b394e7c51b67c662d0fc03204a3967aa2bc90708c97cc0370597ad9e154dc7d418ab71b981f8bb805cc603bde2fcb1025bb8b7a04e5e5168cebd724c920fcbb3399210543db9cf7ef9440fa0f11f5a2ea908da1f60f359ab2af2f79783b2111362260fc8d562b268dd350dcb07941d179f34cfd43a3b8d689db6ff453fce4e987a537a528a80f011217e0460434e52da411e8760b10c34a3b63236eb966273a26a3ad3fc7a863a3b6bc508b16cc7763b28743f4ba5a9711e95eeb95762aa6e9c79725170d42fc8968dcd051d2eef49e1726db2fd92e76c47455efff52fc0b473899acaff169316f9654802
+        description: Provides a transaction that needs to be broadcast to the network
+  /transaction/pool:
+    get:
+      tags:
+        - Transactions
+      summary: Returns the transactions currently in the mempool
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    txnHash:
+                      type: string
+                      example: >-
+                        375837ed9a78873ac6819b27c6f8b1b2614ce1a0ce56375e735c338baddb3d2c
+                    fee:
+                      type: integer
+                      example: 100
+                    size:
+                      type: integer
+                      example: 6126
+                    amount:
+                      type: integer
+                      example: 5910218
+        '500':
+          description: Internal Server Error
+  '/transaction/{hash}':
+    get:
+      tags:
+        - Transactions
+      summary: Returns details regarding the transaction with the specified hash
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  '/transaction/{hash}/inputs':
+    get:
+      tags:
+        - Transactions
+      summary: >-
+        Returns the transcations inputs for the transaction with the specified
+        hash
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction_Input'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+  '/transaction/{hash}/outputs':
+    get:
+      tags:
+        - Transactions
+      summary: >-
+        Returns the transcations outputs for the transaction with the specified
+        hash
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction_Output'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+  '/transactions/{paymentId}':
+    get:
+      tags:
+        - Transactions
+      summary: >-
+        Returns the transcations hashes of all transactions with the specified
+        paymentId
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    hash:
+                      type: string
+                      example: >-
+                        2ed24b81b0b51b86223002e8515b141b8a4b09215be2afa86de46153fa8f2167
+                    mixin:
+                      type: integer
+                      example: 4
+                    timestamp:
+                      type: integer
+                      example: 1521317601
+                    fee:
+                      type: integer
+                      example: 10
+                    size:
+                      type: integer
+                      example: 22639
+                    amount:
+                      type: integer
+                      example: 2048090
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+  /randomOutputs:
+    post:
+      tags:
+        - Wallet Operations
+      summary: Returns random outputs for transaction mixing
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Random_Output'
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amounts
+              properties:
+                amounts:
+                  type: integer
+                  example:
+                    - 1000
+                    - 5000
+                    - 20000
+                mixin:
+                  type: integer
+                  example: 3
+                  default: 3
+        description: >-
+          Provides a request for random outputs from the chain that meet the
+          requirements
+  /sync:
+    post:
+      tags:
+        - Wallet Operations
+      summary: >-
+        Returns all the necessary information for a wallet to discover which
+        outputs belong to it
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Wallet_Sync_Block'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lastKnownBlockHashes:
+                  type: array
+                  items:
+                    type: string
+                    example:
+                      - >-
+                        b226a29c8ea906d89ecda798993888307e2f9da86eb3787a63c9adb388c47bc1
+                      - >-
+                        b5b53a17371e3681f1ded1ddd20339f8c95f54e7774c4fb759db3367c5e75a2d
+                blockCount:
+                  type: integer
+                  example: 100
+                  default: 100
+                scanHeight:
+                  type: integer
+                  example: 1100000
+        description: >-
+          A syncronization request. Either lastKnownBlockHashes or scanHeight is
+          required.
+  /get_transactions_status:
+    post:
+      tags:
+        - Legacy Operations
+      summary: Returns the statuses of the supplied transactions
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactionsInPool:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - >-
+                        2851c17fa2411b94ca432734789fa2b905dbb7edde4d4c82c27586cfebd5f9ec
+                  transactionsInBlock:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - >-
+                        afbe61d9b4795806987f47bc3b984533e88fcaf588f18f892cf307cd78da0788
+                  transactionsUnknown:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - >-
+                        ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+                  status:
+                    type: string
+                    example: OK
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                transactionHashes:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - >-
+                      afbe61d9b4795806987f47bc3b984533e88fcaf588f18f892cf307cd78da0788
+                    - >-
+                      2851c17fa2411b94ca432734789fa2b905dbb7edde4d4c82c27586cfebd5f9ec
+                    - >-
+                      ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+        description: A transaction status request
+  /getwalletsyncdata:
+    post:
+      tags:
+        - Legacy Operations
+      summary: Returns legacy wallet sync data for core ZumCoin software
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Wallet_Sync_Data'
+                  status:
+                    type: string
+                    example: OK
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startHeight:
+                  type: integer
+                  description: The height to begin returning blocks from
+                  example: 1000
+                startTimestamp:
+                  type: integer
+                  description: The timestamp to begin returning blocks from (unix style)
+                  example: 1547340327
+                blockHashCheckpoints:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - >-
+                      0606a15147159e3f01dd90aa78828cf8587caed36203cd764701b56eb6ff6fd8
+                    - >-
+                      1d61bf052ee2fa3720078ee01cf30e01ba305096bf3e3d3668fbc09bbeafa244
+        description: A syncronization request
+  /sendrawtransaction:
+    post:
+      tags:
+        - Legacy Operations
+      summary: >-
+        Attempts to broadcast a raw transaction to the network
+      responses:
+        '200':
+          description: >-
+            OK - Check the status property for the result of the daemon
+            interaction
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: OK
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tx_as_hex:
+                  type: string
+                  example: >-
+                    010001026404d48008fff717d2872294b71e51b8304ed711c0fe240a2614610cc0380a5d0b8b13e2652e6c062fbb056b7f1f015a027b2288942d52247932af36dc1d722da61f296089015b83d591f5a71afafa948021015af0c037fcfe8c50f1e11876c98338fe664c85bc11cd696bc04c988b5669deda96a4299dd9cb471795d079da82e25827badcd79400b394e7c51b67c662d0fc03204a3967aa2bc90708c97cc0370597ad9e154dc7d418ab71b981f8bb805cc603bde2fcb1025bb8b7a04e5e5168cebd724c920fcbb3399210543db9cf7ef9440fa0f11f5a2ea908da1f60f359ab2af2f79783b2111362260fc8d562b268dd350dcb07941d179f34cfd43a3b8d689db6ff453fce4e987a537a528a80f011217e0460434e52da411e8760b10c34a3b63236eb966273a26a3ad3fc7a863a3b6bc508b16cc7763b28743f4ba5a9711e95eeb95762aa6e9c79725170d42fc8968dcd051d2eef49e1726db2fd92e76c47455efff52fc0b473899acaff169316f9654802
+        description: Provides a transaction that needs to be broadcast to the network
+externalDocs:
+  description: ZumPay GitHub Organization
+  url: 'https://github.com/ZumPay-io"
+servers:
+  - url: 'https://blockapi.zumpay.io/'
+components:
+  schemas:
+    Transaction:
+      properties:
+        tx:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/Transaction_Header'
+            - properties:
+                mixin:
+                  type: integer
+                  example: 4
+                paymentId:
+                  type: string
+                extra:
+                  type: string
+                unlock_time:
+                  type: string
+                  example: "1106538"
+                nonce:
+                  type: string
+                publicKey:
+                  type: string
+                  example: >-
+                    a64193a1718ad9f716ef9f771419319df54f108330da313d24469099dc6d573f
+                inputs:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Transaction_Input'
+                outputs:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Transaction_Output'
+        block:
+          type: object
+          properties:
+            cumul_size:
+              type: integer
+              example: 12588
+            difficulty:
+              type: integer
+              example: 3369493820
+            hash:
+              type: string
+              example: fe207be47b035cba0951cfd1cd54c17d035cb2efe6f2b460f2b462c43678f567
+            height:
+              type: integer
+              example: 1129743
+            timestamp:
+              type: integer
+              example: 1546913815
+            tx_count:
+              type: integer
+              example: 3
+            depth:
+              type: integer
+              example: 4
+    Block_Detail:
+      allOf:
+        - $ref: '#/components/schemas/Block_Header'
+        - properties:
+            transactions:
+              type: array
+              items:
+                $ref: '#/components/schemas/Transaction_Header'
+    Block_Header:
+      properties:
+        hash:
+          type: string
+          example: b226a29c8ea906d89ecda798993888307e2f9da86eb3787a63c9adb388c47bc1
+        prevHash:
+          type: string
+          example: b5b53a17371e3681f1ded1ddd20339f8c95f54e7774c4fb759db3367c5e75a2d
+        height:
+          type: integer
+          example: 1129696
+        baseReward:
+          type: integer
+          example: 2881614
+        difficulty:
+          type: integer
+          example: 3668838478
+        majorVersion:
+          type: integer
+          example: 4
+        minorVersion:
+          type: integer
+          example: 0
+        nonce:
+          type: integer
+          example: 1412340624
+        size:
+          type: integer
+          example: 8359
+        timestamp:
+          type: integer
+          example: 1546912440
+        alreadyGeneratedCoins:
+          type: integer
+          example: 3309050796227
+        alreadyGeneratedTransactions:
+          type: integer
+          example: 2728607
+        reward:
+          type: integer
+          example: 2881824
+        sizeMedian:
+          type: integer
+          example: 309
+        totlaFeeAmount:
+          type: integer
+          example: 210
+        transactionsCumulativeSize:
+          type: integer
+          example: 8144
+        transactionCount:
+          type: integer
+          example: 4
+        depth:
+          type: integer
+          example: 12
+    Block_Summary:
+      properties:
+        size:
+          type: integer
+          example: 12489
+        difficulty:
+          type: integer
+          example: 664181705
+        hash:
+          type: string
+          example: cec44b86eec8e26cfbe1b78fa50c893ffef90fe4c7b0d6f0b17d6c290f98cce7
+        height:
+          type: integer
+          example: 1000000
+        timestamp:
+          type: integer
+          example: 1543009724
+        nonce:
+          type: integer
+          example: 3422693826
+        tx_count:
+          type: integer
+          example: 2
+    Random_Output:
+      properties:
+        amount:
+          type: integer
+          example: 1000
+        outs:
+          type: array
+          items:
+            type: object
+            properties:
+              global_amount_index:
+                type: integer
+                example: 947527
+              out_key:
+                type: string
+                example: >-
+                  a88f6bc8deb39414e00ed04d9bcdd0dc1f22a3673d222b482634c0e607ffd4fb
+    Wallet_Sync_Block:
+      properties:
+        blockHash:
+          type: string
+          example: cec44b86eec8e26cfbe1b78fa50c893ffef90fe4c7b0d6f0b17d6c290f98cce7
+        height:
+          type: integer
+          example: 1000000
+        timestamp:
+          type: integer
+          example: 1543009724
+        transactions:
+          type: array
+          items:
+            type: object
+            properties:
+              hash:
+                type: string
+                example: >-
+                  fdf5c761c116d1c291b691d1f696a19e4a422ac0970f41af1cd38cd8a64d75a7
+              publicKey:
+                type: string
+                example: >-
+                  00a45147725a871df09e1bd73a543d0eb95d81c158077da2dadde089f89016d0
+              unlockTime:
+                type: string
+                example: "1106538"
+              paymentId:
+                type: string
+                example: >-
+                  487b9be44dbe529e626ce5287ed387638fe6b208f15ee72a9807ad65719a169d
+              inputs:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    keyImage:
+                      type: string
+                      example: >-
+                        5f279712ba438978cf48521914880e21a6be990e644a2a5986dbeda0966c5891
+                    amount:
+                      type: integer
+                      example: 1
+                    type:
+                      type: string
+                      example: '02'
+              outputs:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    index:
+                      type: integer
+                      example: 0
+                    globalIndex:
+                      type: integer
+                      example: 231283
+                    key:
+                      type: string
+                      example: >-
+                        d1e663304b3cb396fe279631dc3d10f56a0333cc39840a4fbd9957eef58b52fb
+                    amount:
+                      type: integer
+                      example: 9
+                    type:
+                      type: string
+                      example: '02'
+    Transaction_Header:
+      properties:
+        amount_out:
+          type: integer
+          example: 2892781
+        fee:
+          type: integer
+          example: 0
+        hash:
+          type: string
+          example: 4fa7d427f9564edd81c0b486cfa2ae5e6c3c40cfac1c8644f77a8c7ca423ab34
+        size:
+          type: integer
+          example: 309
+    Transaction_Input:
+      properties:
+        keyImage:
+          type: string
+          example: 305b6353534330a2b7b9ffcd3261793a60fc5702dc3c794a6d01933b5ac2b9d4
+        amount:
+          type: integer
+          example: 8
+        type:
+          type: string
+          example: '02'
+    Transaction_Output:
+      properties:
+        outputIndex:
+          type: integer
+          example: 0
+        globalIndex:
+          type: integer
+          example: 234011
+        amount:
+          type: integer
+          example: 8
+        key:
+          type: string
+          example: 1743473429337ed93bf51af860226684228e64953631e000ec4e32116ff9ad53
+        type:
+          type: string
+          example: '02'
+    Wallet_Sync_Data:
+      properties:
+        blockHash:
+          type: string
+          example: 221e7c19b11473c78694369945ef2b46d327255a3cf27e827c1da5a9971a4cbc
+        blockHeight:
+          type: integer
+          example: 1106498
+        blockTimestamp:
+          type: integer
+          example: 1546214436
+        coinbaseTX:
+          type: object
+          properties:
+            hash:
+              type: string
+              example: 6c2a9be4897d6b60b8c093bc3c7e24624910ae162f9b8d2b8c1f1b8156219e85
+            outputs:
+              type: array
+              items:
+                type: object
+                properties:
+                  amount:
+                    type: integer
+                    example: 6
+                  key:
+                    type: string
+                    example: >-
+                      d8d4d10e6d663b4bdad910b93141f6b289be6c091097bcb9f140c37d3f5df95e
+                  globalIndex:
+                    type: integer
+                    example: 269142
+            txPublicKey:
+              type: string
+              example: 8770d63f4211bfe8f50c2344ee000e99c4023a9de382c36bfaa20846f71e8958
+            unlockTime:
+              type: string
+              example: "1106538"
+        transactions:
+          type: array
+          items:
+            type: object
+            properties:
+              hash:
+                type: string
+                example: >-
+                  f6316d35ab64080165c6c0476e9382306de3a5ff3367b32ac36acd0e0d374f40
+              inputs:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    amount:
+                      type: integer
+                      example: 90
+                    k_image:
+                      type: string
+                      example: >-
+                        bc8548a84bd1f0deed4f614d41022ad7f5cc15687e062eb3b29c4dfacb694dc9
+              outputs:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    amount:
+                      type: integer
+                      example: 6
+                    key:
+                      type: string
+                      example: >-
+                        d8d4d10e6d663b4bdad910b93141f6b289be6c091097bcb9f140c37d3f5df95e
+                    globalIndex:
+                      type: integer
+                      example: 1124145
+              paymentID:
+                type: string
+                example: ''
+              txPublicKey:
+                type: string
+                example: >-
+                  01213035e9be3db80afa81e5d0d0305ffaad00513f0f3f38deff67d6bc9c3a6b
+              unlockTime:
+                type: string
+                example: "1106538"

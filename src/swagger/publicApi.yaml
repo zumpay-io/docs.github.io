@@ -1,0 +1,359 @@
+openapi: 3.0.0
+info:
+  description: >-
+    This document outlines the public API methods available using the ZumPay
+    platform for creating and completing payment requests on the ZumCoin
+    network.
+  version: "1.2.1-oas3"
+  title: ZumPay Public API Interface
+  contact:
+    email: zumpay@zumcoin.org
+  license:
+    name: GNU Affero General Public License version 3
+    url: 'https://opensource.org/licenses/AGPL-3.0'
+tags:
+  - name: Payment Requests
+paths:
+  /new:
+    post:
+      tags:
+        - Payment Requests
+      summary: Creates a new payment request
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sendToAddress:
+                    type: string
+                    description: The address to provide the user to send funds to
+                    example: >-
+                      Zum1v2uxbWyZ4DM5BLo5fURdzapJ3U6nHMMDst5RjkrR4Yy2ZL3r5EC7nXGmq5x2fAQbdGKLFaMNRRasGRrS2WhRWHDkNQ7qaDP
+                  atomicAmount:
+                    type: number
+                    description: >-
+                      The atomic amount that the user needs to send to complete
+                      the request
+                    example: 100
+                  startHeight:
+                    type: number
+                    description: >-
+                      The blockchain height that we will start looking for
+                      transactions to complete the request
+                    example: 1132510
+                  endHeight:
+                    type: number
+                    description: >-
+                      The blockchain height that we will stop looking for
+                      transactions to complete the request
+                    example: 1132570
+                  confirmations:
+                    type: number
+                    description: >-
+                      The number of confirmations that we will wait to pass once
+                      we find transactions destined for this request
+                    example: 30
+                  qrCode:
+                    type: string
+                    description: >-
+                      A link to a QR code image that contains the required
+                      payment information to complete this request
+                    example: >-
+                      https://chart.googleapis.com/chart?cht=qr&chs=256x256&chl=zumcoin://Zum1v2uxbWyZ4DM5BLo5fURdzapJ3U6nHMMDst5RjkrR4Yy2ZL3r5EC7nXGmq5x2fAQbdGKLFaMNRRasGRrS2WhRWHDkNQ7qaDP?amount=100
+                  userDefined:
+                    type: object
+                    description: >-
+                      A copy of the data you supplied in the optional
+                      userDefined field
+                  callbackPublicKey:
+                    type: string
+                    description: >-
+                      The Public Key of the Private Key the platform uses to
+                      sign callback messages
+                    example: >-
+                      2d2d2d2d2d424547494e205055424c4943204b45592d2d2d2d2d0a4d494942496a414e42676b71686b6947397730424151454641414f43415138414d49494243674b434151454171393146373874724f377957326b5170343455760a3530734c7834376d32326473695a31474c38685a47592b707a78673744733449434973372f6b6b457448345548474e425357514e707235487a564d57316d4b720a756244334a694e513954724e4c644857494a7459456a70497a71514a5144484e69527a6c32352b434f3131645245705a736c78567944477534456430683072540a6947477669457656432b4a75796979476a42536c6c4f4f6a72303850656f7538434b6f54443546636e46667049457738735969775133793034506a665a4b665a0a4a486f4148474d467347427862627865726b543543735566444f50346851302f61414357626a42533874427943496770767842357874386c6e656a67717731620a535362673777593237383548753848764b38644d504d554566686f4e616c5347436b416a31692b5362344d696a4533454c44714f30583455324174574a4b42720a77774944415141420a2d2d2d2d2d454e44205055424c4943204b45592d2d2d2d2d
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Failure
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - address
+                - amount
+              properties:
+                address:
+                  type: string
+                  "description": "The address to send the funds of the transaction to once they are received by us",
+                  example: >-
+                    Zum1uxN6FVALYxeAEKhtWDYNS9Vd9dHVp3QHwjKbo76ggQKgUfVjQp8iPypECCy3MwZVyu89k1fWE2Ji6EKedbrqECHHWouZN6g
+                amount:
+                  type: number
+                  "description": "The amount requested in atomic units",
+                  example: 100000000
+                callback:
+                  type: string
+                  "description": "The URL to which the callback responses will be posted to",
+                  "example": "https://webhook.site/782e1b19-c193-445a-b38e-9a2cd6d526s4"
+                confirmations:
+                  type: number
+                  "description": "The number of confirmations to be waited for before relaying the funds and providing the appropriate callback response",
+                  example: 30
+                  default: 60
+                name:
+                  type: string
+                  default: null
+                  description: If supplied, will be appended to the end of the QR code URL supplied as ?name=<name>
+                userDefined:
+                  type: object
+        description: Creates a new payment request
+      callbacks:
+        receivedFunds:
+          '{$request.body#/callback}':
+            post:
+              summary: Called when at least the requested funds have been sent to the specified wallet and enough confirmations have completed.
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          example: Zum1v2uxbWyZ4DM5BLo5fURdzapJ3U6nHMMDst5RjkrR4Yy2ZL3r5EC7nXGmq5x2fAQbdGKLFaMNRRasGRrS2WhRWHDkNQ7qaDP
+                          description: The address where the user should send funds
+                        status:
+                          type: number
+                          example: 100
+                          description: Continue
+                        request:
+                          type: object
+                          properties:
+                            address:
+                              type: string
+                              example: Zum1uxN6FVALYxeAEKhtWDYNS9Vd9dHVp3QHwjKbo76ggQKgUfVjQp8iPypECCy3MwZVyu89k1fWE2Ji6EKedbrqECHHWouZN6g
+                              description: The address where we will be sending funds to
+                            amount:
+                              type: number
+                              example: 100
+                              description: The amount of funds requested
+                            userDefined:
+                              type: object
+                              description: Any additional information supplied in the creation of the request
+                        amount:
+                          type: number
+                          example: 100
+                          description: The amount received into the temporary wallet created for this request
+              responses:
+                '200':
+                  description: OK
+        inProgress:
+          '{$request.body#/callback}':
+            post:
+              summary: Called when we have received funds for the request; however, we have not received all the funds requested or the funds have not reached the required confirmation depth.
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          example: Zum1v2uxbWyZ4DM5BLo5fURdzapJ3U6nHMMDst5RjkrR4Yy2ZL3r5EC7nXGmq5x2fAQbdGKLFaMNRRasGRrS2WhRWHDkNQ7qaDP
+                          description: The address where the user should send funds
+                        status:
+                          type: number
+                          example: 102
+                          description: Continue
+                        request:
+                          type: object
+                          properties:
+                            address:
+                              type: string
+                              example: Zum1uxN6FVALYxeAEKhtWDYNS9Vd9dHVp3QHwjKbo76ggQKgUfVjQp8iPypECCy3MwZVyu89k1fWE2Ji6EKedbrqECHHWouZN6g
+                              description: The address where we will be sending funds to
+                            amount:
+                              type: number
+                              example: 100
+                              description: The amount of funds requested
+                            userDefined:
+                              type: object
+                              description: Any additional information supplied in the creation of the request
+                        amount:
+                          type: number
+                          example: 100
+                          description: The amount received into the temporary wallet created for this request
+                        confirmationsRemaining:
+                          type: number
+                          example: 10
+                          description: The number of block confirmations remaining for the requested funds
+                        blocksRemaining:
+                          type: number
+                          example: 10
+                          description: The number of blocks which we will continue to scan for funds
+              responses:
+                '200':
+                  description: OK
+        sentFunds:
+          '{$request.body#/callback}':
+            post:
+              summary: Called when we relay funds to the specified wallet.
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          example: Zum1v2uxbWyZ4DM5BLo5fURdzapJ3U6nHMMDst5RjkrR4Yy2ZL3r5EC7nXGmq5x2fAQbdGKLFaMNRRasGRrS2WhRWHDkNQ7qaDP
+                          description: The address where the user should send funds
+                        status:
+                          type: number
+                          example: 200
+                          description: Continue
+                        request:
+                          type: object
+                          properties:
+                            address:
+                              type: string
+                              example: Zum1uxN6FVALYxeAEKhtWDYNS9Vd9dHVp3QHwjKbo76ggQKgUfVjQp8iPypECCy3MwZVyu89k1fWE2Ji6EKedbrqECHHWouZN6g
+                              description: The address where we will be sending funds to
+                            amount:
+                              type: number
+                              example: 100
+                              description: DEPRECATED - The amount of funds received
+                            userDefined:
+                              type: object
+                              description: Any additional information supplied in the creation of the request
+                        txnHash:
+                          type: string
+                          example: 6219af887d59f796862258fcc4712db076cefbd3f41ad52ad753a45029414f99
+                          description: The transaction hash for the transaction that sends the funds to the requested wallet
+                        txnPrivateKey:
+                          type: string
+                          example: 1213a7d8d37dc01e59ec872f438e0c63ff48cf388ab29dbd6d4b498c7e831e05
+                          description: The transaction private key for the transaction that sends the funds to the requested wallet
+                        amountReceived:
+                              type: number
+                              example: 100
+                              description: The amount of funds received
+                        amountSent:
+                          type: number
+                          example: 90
+                          description: The amount of funds sent on to the requestor (amount received minus network transaction fee)
+                        networkFee:
+                          type: number
+                          example: 10
+                          description: The network fee paid for sending the funds to the requestor
+                        amount:
+                          type: number
+                          example: 90
+                          description: The amount received into the temporary wallet created for this request
+                        keys:
+                          type: object
+                          properties:
+                            privateSpendKey:
+                              type: string
+                              example: "886e03f06780964fd1e625b51382e571fa141c86f9ea6128f363fb217fdfaf0b"
+                              description: The private spend key of the one-time use wallet
+                            privateViewKey:
+                              type: string
+                              example: "80ec1f056c95f0dacebb95ff5ff82eafde9b89380a4feeecdecc80e70789ce0d"
+                              description: The private view key of the one-time use wallet
+              responses:
+                '200':
+                  description: OK
+        notEnoughFunds:
+          '{$request.body#/callback}':
+            post:
+              summary: Called when we have received funds for the request; however, there are not enough funds available to forward the funds (due to the network transaction fee) to forward the funds to the requested wallet.
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          example: Zum1v2uxbWyZ4DM5BLo5fURdzapJ3U6nHMMDst5RjkrR4Yy2ZL3r5EC7nXGmq5x2fAQbdGKLFaMNRRasGRrS2WhRWHDkNQ7qaDP
+                          description: The address where the user should send funds
+                        status:
+                          type: number
+                          example: 402
+                          description: Continue
+                        request:
+                          type: object
+                          properties:
+                            address:
+                              type: string
+                              example: Zum1uxN6FVALYxeAEKhtWDYNS9Vd9dHVp3QHwjKbo76ggQKgUfVjQp8iPypECCy3MwZVyu89k1fWE2Ji6EKedbrqECHHWouZN6g
+                              description: The address where we will be sending funds to
+                            amount:
+                              type: number
+                              example: 100
+                              description: The amount of funds requested
+                            userDefined:
+                              type: object
+                              description: Any additional information supplied in the creation of the request
+              responses:
+                '200':
+                  description: OK
+        walletTimeout:
+          '{$request.body#/callback}':
+            post:
+              summary: Called when the wallet created for the request times out as no funds were received into the wallet within the alloted time.
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          example: Zum1v2uxbWyZ4DM5BLo5fURdzapJ3U6nHMMDst5RjkrR4Yy2ZL3r5EC7nXGmq5x2fAQbdGKLFaMNRRasGRrS2WhRWHDkNQ7qaDP
+                          description: The address where the user should send funds
+                        status:
+                          type: number
+                          example: 408
+                          description: Request Timed Out
+                        request:
+                          type: object
+                          properties:
+                            address:
+                              type: string
+                              example: Zum1uxN6FVALYxeAEKhtWDYNS9Vd9dHVp3QHwjKbo76ggQKgUfVjQp8iPypECCy3MwZVyu89k1fWE2Ji6EKedbrqECHHWouZN6g
+                              description: The address where we would have sent funds to
+                            amount:
+                              type: number
+                              example: 100
+                              description: The amount of funds requested
+                            userDefined:
+                              type: object
+                              description: Any additional information supplied in the creation of the request
+                        keys:
+                          type: object
+                          properties:
+                            privateSpendKey:
+                              type: string
+                              example: "886e03f06780964fd1e625b51382e571fa141c86f9ea6128f363fb217fdfaf0b"
+                              description: The private spend key of the one-time use wallet
+                            privateViewKey:
+                              type: string
+                              example: "80ec1f056c95f0dacebb95ff5ff82eafde9b89380a4feeecdecc80e70789ce0d"
+                              description: The private view key of the one-time use wallet
+              responses:
+                200:
+                  description: OK
+
+externalDocs:
+  description: ZumPay GitHub Organization
+  url: 'https://github.com/ZumPay-io"
+servers:
+  - url: 'https://api.zumpay.io/v1'
